@@ -29,8 +29,15 @@ services:
       - "5000:5000"
     volumes:
       - ./obsidian-vault:/app/vault
+      - ./orchestrator-state:/app/state
     environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - SIGNAL_API_URL=http://signal-api:8080
       - MY_PHONE_NUMBER=${MY_PHONE_NUMBER}
+      - GEMINI_MODEL=gemini-flash-latest
+      - RECENT_HISTORY_DAYS=7
+      - MAX_HISTORY_TURNS=20
+    depends_on:
+      - signal-api
     restart: always
+

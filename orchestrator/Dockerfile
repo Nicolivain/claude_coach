@@ -1,7 +1,11 @@
-# On prépare le terrain pour tes futurs scripts
-FROM python:3.11-slim
 
+FROM python:3.12-slim
+ 
 WORKDIR /app
-
-# Cette commande empêche le conteneur de s'éteindre tout seul
-CMD ["tail", "-f", "/dev/null"]
+ 
+COPY requirements.txt .
+RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
+ 
+COPY . .
+ 
+CMD ["python3", "main.py"]
