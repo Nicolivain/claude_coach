@@ -47,10 +47,19 @@ HEVY_API_KEY=your_hevy_key
 
 2. Link your Signal account:
    ```bash
-   docker exec -it signal-api signal-cli link -n "Virtual Coach"
+   ./scripts/link_signal.sh
    ```
+   
+   This helper script will:
+   - Check Docker and container status
+   - Start the container if needed
+   - Guide you through the QR code linking process
+   - Verify the connection was successful
 
-3. Follow the QR code instructions to link your device
+3. Follow the QR code instructions to link your device:
+   - Open Signal on your phone
+   - Go to Settings > Linked Devices
+   - Tap "Link New Device" and scan the QR code
 
 ### 3. Data Sync
 

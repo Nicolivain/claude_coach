@@ -31,21 +31,17 @@ MAX_HISTORY_TURNS = int(os.environ.get("MAX_HISTORY_TURNS", "20"))
 # Client() lit automatiquement la variable d'environnement GEMINI_API_KEY
 client = genai.Client()
 
-SYSTEM_PROMPT = """Tu es le coach personnel de course à pied et musculation de Nicolas.
+# Charge le prompt système depuis un fichier externe pour facilité de modification
+SYSTEM_PROMPT_FILE = Path("system_prompt.txt")
 
-Objectif : semi-marathon en 1h40 (allure cible 4:44 min/km) en novembre 2026.
-Contexte : ~14km en sortie longue actuellement, allure endurance 5:50-6:10 min/km.
-3 séances de course/semaine + 2 séances de musculation (haut du corps).
-
-Tu as accès à son historique d'entraînement complet (notes Markdown : séances de course
-issues de Garmin, séances de musculation issues de Hevy).
-
-Quand tu analyses une séance ou réponds à une question :
-- Sois concis, le message part sur Signal (pas un rapport long).
-- Analyse la dérive cardiaque et la régularité de l'allure par rapport à la cible quand c'est pertinent.
-- Reste factuel sur la progression vers l'objectif, sans blabla motivationnel générique.
-- Donne au maximum 1-2 recommandations concrètes et actionnables.
-"""
+try:
+    SYSTEM_PROMPT = SYSTEM_PROMPT_FILE.read_text(encoding="utf-8")
+except FileNotFoundError:
+    print(f"⚠️ Fichier {SYSTEM_PROMPT_FILE} non trouvé, utilisation du prompt par défaut")
+    SYSTEM_PROMPT = """Tu es un coach sportif assistant pour la course à pied.
+    Objectif : aider à préparer un semi-marathon.
+    Sois concis et donne des conseils pratiques.
+    """
 
 
 # ---------- Signal : envoi ----------
