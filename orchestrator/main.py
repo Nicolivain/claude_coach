@@ -196,24 +196,32 @@ def on_ws_message(ws, message):
     envelope = data.get("envelope", {})
     text = None
 
-    # 1. Direct incoming message (dataMessage)
+    # Récupération de l'expéditeur principal
+    source_number = envelope.get("sourceNumber") or envelope.get("source")
+
+    # 1. Message direct entrant (ex: tapé depuis un autre appareil lié)
     data_message = envelope.get("dataMessage")
     if data_message and isinstance(data_message, dict):
-        text = data_message.get("message")
+        # On ignore les groupes, et on vérifie que le message vient de TOI
+        if source_number == MY_PHONE_NUMBER and not data_message.get("groupInfo"):
+            text = data_message.get("message")
 
-    # 2. Synced message (syncMessage -> Note to Self from mobile)
+    # 2. Message synchronisé (tapé depuis ton téléphone principal)
     sync_message = envelope.get("syncMessage")
     if not text and sync_message and isinstance(sync_message, dict):
         sent_message = sync_message.get("sentMessage")
         if sent_message and isinstance(sent_message, dict):
-            text = sent_message.get("message")
+            # On vérifie que le destinataire est bien TOI (Note à moi-même)
+            destination = sent_message.get("destination") or sent_message.get("destinationNumber")
+            if destination == MY_PHONE_NUMBER and not sent_message.get("groupInfo"):
+                text = sent_message.get("message")
 
     if not text:
         return
 
     clean_text = text.strip()
     if clean_text in RECENTLY_SENT_MESSAGES:
-        # Ignore message generated/sent by the bot itself
+        # Ignore les messages générés/envoyés par le bot lui-même
         RECENTLY_SENT_MESSAGES.discard(clean_text)
         return
 
