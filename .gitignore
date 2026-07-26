@@ -1,6 +1,5 @@
 # Variables d'environnement
 .env
-.env.*
 
 # Sessions et clés privées Signal
 signal-data/
