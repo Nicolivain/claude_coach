@@ -1,0 +1,36 @@
+services:
+  signal-api:
+    image: bbernhard/signal-cli-rest-api:latest
+    container_name: signal-api
+    environment:
+      - PORT=8080
+      - MODE=jsonrpc
+    volumes:
+      - ./signal-data:/home/.local/share/signal-cli
+    ports:
+      - "8088:8080"
+    restart: always
+
+  sync-agent:
+    build: ./sync-agent
+    container_name: sync-agent
+    volumes:
+      - ./obsidian-vault:/app/vault
+    environment:
+      - GARMIN_EMAIL=${GARMIN_EMAIL}        # <-- Ajouté
+      - GARMIN_PASSWORD=${GARMIN_PASSWORD}  # <-- Ajouté
+      - HEVY_API_KEY=${HEVY_API_KEY}
+    restart: always
+
+  coach-orchestrator:
+    build: ./orchestrator
+    container_name: coach-orchestrator
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./obsidian-vault:/app/vault
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - SIGNAL_API_URL=http://signal-api:8080
+      - MY_PHONE_NUMBER=${MY_PHONE_NUMBER}
+    restart: always
