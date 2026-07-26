@@ -4,9 +4,9 @@ services:
     container_name: signal-api
     environment:
       - PORT=8080
-      - MODE=jsonrpc
+      - MODE=json-rpc
     volumes:
-      - ./signal-data:/root/.local/share/signal-cli
+      - ./signal-data:/home/.local/share/signal-cli
     ports:
       - "8088:8080"
     restart: always
@@ -26,7 +26,7 @@ services:
     build: ./orchestrator
     container_name: coach-orchestrator
     ports:
-      - "5000:5000"
+      - "5005:5000"
     volumes:
       - ./obsidian-vault:/app/vault
       - ./orchestrator-state:/app/state
