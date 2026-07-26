@@ -50,7 +50,14 @@ Quand tu analyses une séance ou réponds à une question :
 
 # ---------- Signal : envoi ----------
 
+RECENTLY_SENT_MESSAGES = set()
+
+
 def send_signal_message(text):
+    if text:
+        RECENTLY_SENT_MESSAGES.add(text.strip())
+        if len(RECENTLY_SENT_MESSAGES) > 100:
+            RECENTLY_SENT_MESSAGES.clear()
     payload = {
         "message": text,
         "number": MY_PHONE_NUMBER,
@@ -180,18 +187,42 @@ def handle_incoming_signal_message(text):
 
 
 def on_ws_message(ws, message):
+    print(f"📩 WS RAW: {message}")
     try:
         data = json.loads(message)
     except json.JSONDecodeError:
         return
 
     envelope = data.get("envelope", {})
-    data_message = envelope.get("dataMessage")
-    if not data_message:
-        return  # accusés de réception, ping, indicateurs de saisie, etc.
+    text = None
 
-    text = data_message.get("message")
+    # Récupération de l'expéditeur principal
+    source_number = envelope.get("sourceNumber") or envelope.get("source")
+
+    # 1. Message direct entrant (ex: tapé depuis un autre appareil lié)
+    data_message = envelope.get("dataMessage")
+    if data_message and isinstance(data_message, dict):
+        # On ignore les groupes, et on vérifie que le message vient de TOI
+        if source_number == MY_PHONE_NUMBER and not data_message.get("groupInfo"):
+            text = data_message.get("message")
+
+    # 2. Message synchronisé (tapé depuis ton téléphone principal)
+    sync_message = envelope.get("syncMessage")
+    if not text and sync_message and isinstance(sync_message, dict):
+        sent_message = sync_message.get("sentMessage")
+        if sent_message and isinstance(sent_message, dict):
+            # On vérifie que le destinataire est bien TOI (Note à moi-même)
+            destination = sent_message.get("destination") or sent_message.get("destinationNumber")
+            if destination == MY_PHONE_NUMBER and not sent_message.get("groupInfo"):
+                text = sent_message.get("message")
+
     if not text:
+        return
+
+    clean_text = text.strip()
+    if clean_text in RECENTLY_SENT_MESSAGES:
+        # Ignore les messages générés/envoyés par le bot lui-même
+        RECENTLY_SENT_MESSAGES.discard(clean_text)
         return
 
     try:
