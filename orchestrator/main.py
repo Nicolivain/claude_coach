@@ -125,10 +125,28 @@ class NewWorkoutHandler(FileSystemEventHandler):
     def on_created(self, event):
         if event.is_directory or not event.src_path.endswith(".md"):
             return
+            
+        path = Path(event.src_path)
+        
+        # Vérifie si l'activité est datée d'aujourd'hui (format attendu : Nom_YYYY-MM-DD_...)
+        try:
+            parts = path.stem.split("_")
+            if len(parts) >= 2:
+                date_str = parts[1]
+                try:
+                    activity_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                    if activity_date != datetime.now().date():
+                        print(f"⏭️ Activité ignorée (pas d'aujourd'hui) : {path.name}")
+                        return
+                except ValueError:
+                    pass # La deuxième partie n'est pas une date, on continue
+        except Exception:
+            pass
+
         # Laisse le temps au fichier d'être complètement écrit avant lecture
         time.sleep(2)
         try:
-            handle_new_workout(Path(event.src_path))
+            handle_new_workout(path)
         except Exception as e:
             print(f"❌ Erreur traitement {event.src_path} : {e}")
 

@@ -1,12 +1,10 @@
+import os
 import time
 import subprocess
 
 def run_sync():
     print("🔄 Starting scheduled synchronization...", flush=True)
     try:
-        print("-> Running sync_workouts.py", flush=True)
-        subprocess.run(["python", "sync_workouts.py"], check=False)
-        
         print("-> Running sync_garmin.py", flush=True)
         subprocess.run(["python", "sync_garmin.py"], check=False)
         
@@ -14,12 +12,15 @@ def run_sync():
         print(f"❌ Error during sync: {e}", flush=True)
 
 if __name__ == "__main__":
-    print("⌚ Scheduler started. Running sync every 30 minutes...", flush=True)
+    interval_minutes = float(os.getenv("SYNC_INTERVAL_MINUTES", "30"))
+    interval_seconds = int(interval_minutes * 60)
+    
+    print(f"⌚ Scheduler started. Running sync every {interval_minutes:g} minutes...", flush=True)
     
     # Run immediately on startup
     run_sync()
     
-    # Loop every 30 minutes
+    # Loop according to configured interval
     while True:
-        time.sleep(1800)
+        time.sleep(interval_seconds)
         run_sync()
